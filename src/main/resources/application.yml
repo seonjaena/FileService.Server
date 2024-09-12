@@ -1,0 +1,49 @@
+spring:
+  servlet:
+    multipart:
+      # 2024MBでアップロードできるファイルと要請のサイズを制限する
+      max-file-size: 2048MB
+      max-request-size: 2048MB
+
+  # DataBaseは実行を簡単にするためにH2を使う
+  datasource:
+    url: jdbc:h2:~/fileservice
+    username: ${DB_USERNAME:SA}
+    password: ${DB_PASSWORD:test1234}
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      # プログラムを実行するときEntityと実際のDataBaseのテーブルを比べる
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+#    show-sql: false
+    properties:
+      hibernate:
+#        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false # 性能のためにopen-in-viewをfalseで設定する
+
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ant_path_matcher
+
+  logging:
+    config: classpath:logback-spring.xml
+
+# JWTの設定
+jwt:
+  # JWTの秘密キーを環境変数で注入される
+  secret: ${JWT_SECRET_KEY}
+  expire:
+    # 5分 (1000 * 60 * 5 = 300000) / 30分 (1000 * 60 * 30 = 1800000) / 1時間 (1000 * 60 * 60 = 3600000)
+    access: 1800000
+    # 1日 (1000 * 60 * 24 = 1440000) / 1月 (1000 * 60 * 24 * 31 = 44640000)
+    refresh: 1440000
+
+server:
+  forward-headers-strategy: native # HttpServletRequest.getRemoteAddr()を使ってX-Forwarded-For Header情報をもらうために使う
+
+service:
+  enable-ips: ${ENABLE_IPS} # 要請ができるIPを環境変数で注入される ex: 197.0.10. , 197.0.10.24
