@@ -7,27 +7,26 @@ spring:
 
   # DataBaseは実行を簡単にするためにH2を使う
   datasource:
-    url: jdbc:h2:~/fileservice
-    username: ${DB_USERNAME:SA}
-    password: ${DB_PASSWORD:test1234}
+    url: jdbc:h2:mem:file
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:test}
     driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
   jpa:
     hibernate:
-      # プログラムを実行するときEntityと実際のDataBaseのテーブルを比べる
-      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-#    show-sql: false
-    properties:
-      hibernate:
-#        format_sql: false
-        dialect: org.hibernate.dialect.H2Dialect
+      # プログラムを実行するときEntityと実際のDataBaseのテーブルを比べる
+      ddl-auto: update
     open-in-view: false # 性能のためにopen-in-viewをfalseで設定する
-
-#  mvc:
-#    pathmatch:
-#      matching-strategy: ant_path_matcher
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
 
   logging:
     config: classpath:logback-spring.xml
@@ -35,7 +34,7 @@ spring:
 # JWTの設定
 jwt:
   # JWTの秘密キーを環境変数で注入される
-  secret: ${JWT_SECRET_KEY}
+  secret: ${JWT_SECRET_KEY:zrGwAiwkl9jUN4aIxXa8KluPljl9eX0qKfpTgYT1OKIlZLOIf5L0jPSN9pjc0sJ1d5r1xGJCuLJu6u8K2BlSKTNhY7liEgbGCJnz10y3Z3IItlsO0pJjIhPTgMvQ95Iki2oVx4fbBMY6fBD33WungyCmcOYsBdk1IAABl1qn6E6LgmEJoOv8Z83SRb3PmlCO}
   expire:
     # 5分 (1000 * 60 * 5 = 300000) / 30分 (1000 * 60 * 30 = 1800000) / 1時間 (1000 * 60 * 60 = 3600000)
     access: 1800000
@@ -46,4 +45,4 @@ server:
   forward-headers-strategy: native # HttpServletRequest.getRemoteAddr()を使ってX-Forwarded-For Header情報をもらうために使う
 
 service:
-  enable-ips: ${ENABLE_IPS} # 要請ができるIPを環境変数で注入される ex: 197.0.10. , 197.0.10.24
+  allowed-ips: ${ALLOWED_IPS:192.168.192.192, 127.0.0.1, 0:0:0:0:0:0:0:1} # 要請ができるIPを環境変数で注入される ex: 197.0.10. , 197.0.10.24

@@ -1,6 +1,8 @@
-package com.dau.file.auth;
+package com.dau.file.security;
 
 import com.dau.file.dto.JwtDto;
+import com.dau.file.exception.exception.UnAuthenticatedException;
+import com.dau.file.exception.exception.UnAuthorizedException;
 import com.dau.file.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
@@ -62,7 +64,7 @@ public class JwtProvider {
         String accessToken = createAccessToken(userId, roles, now);
         String refreshToken = createRefreshToken(userId, roles, now);
 
-        return new JwtDto(accessToken, refreshToken);
+        return new JwtDto(accessToken);
     }
 
     /**
