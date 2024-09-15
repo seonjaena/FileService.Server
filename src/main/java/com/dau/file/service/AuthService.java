@@ -26,7 +26,6 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
-        System.out.println("userId = " +loginRequestDto.getUserId() + ", userPw = " + loginRequestDto.getUserPw());
         User dbUser = userService.getUser(loginRequestDto.getUserId());
 
         if(!passwordEncoder.matches(loginRequestDto.getUserPw(), dbUser.getUserPw())) {

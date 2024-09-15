@@ -6,9 +6,9 @@ import com.dau.file.exception.JwtAccessDeniedHandler;
 import com.dau.file.exception.JwtAuthenticationEntryPoint;
 import com.dau.file.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,10 +19,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,11 +30,15 @@ public class SecurityConfig {
 
     private final IpConfig ipConfig;
 
-    // application.ymlで定義したアクセスができるIP
-    @Value("${service.allowed-ips}")
-    private List<String> allowedIps;
-    private static final String ALLOWED_IP_REGEXP = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
-    private static final Pattern ALLOWED_IP_PATTERN = Pattern.compile(ALLOWED_IP_REGEXP);
+    private final static String H2_CONSOLE_URL = "/h2-console/**";
+
+    private static final Map<HttpMethod, String[]> PERMIT_ALL_METHOD_URL = Map.ofEntries(
+            Map.entry(HttpMethod.GET, new String[]{}),
+            Map.entry(HttpMethod.POST, new String[]{"/auth"}),
+            Map.entry(HttpMethod.PUT, new String[]{}),
+            Map.entry(HttpMethod.PATCH, new String[]{}),
+            Map.entry(HttpMethod.DELETE, new String[]{})
+    );
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtProvider jwtProvider) throws Exception {
@@ -61,7 +62,13 @@ public class SecurityConfig {
                 // どんなRequestでも認証が必要だ
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
-                                .requestMatchers("/auth", "/h2-console/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, PERMIT_ALL_METHOD_URL.get(HttpMethod.GET)).permitAll()
+                                .requestMatchers(HttpMethod.POST, PERMIT_ALL_METHOD_URL.get(HttpMethod.POST)).permitAll()
+                                .requestMatchers(HttpMethod.PUT, PERMIT_ALL_METHOD_URL.get(HttpMethod.PUT)).permitAll()
+                                .requestMatchers(HttpMethod.PATCH, PERMIT_ALL_METHOD_URL.get(HttpMethod.PATCH)).permitAll()
+                                .requestMatchers(HttpMethod.DELETE, PERMIT_ALL_METHOD_URL.get(HttpMethod.DELETE)).permitAll()
+                                .requestMatchers(H2_CONSOLE_URL).permitAll()
+                                .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
                 )
                 // JWTを使うからFormLoginは使わない
@@ -89,20 +96,12 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        List<String> allowedIps = new ArrayList<>();
-        for(String ip : allowedIps) {
-            if(ALLOWED_IP_PATTERN.matcher(ip).matches()) {
-                allowedIps.add("http://" + ip);
-                allowedIps.add("https://" + ip);
-            }
-        }
-
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(allowedIps);
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
+        configuration.addAllowedOrigin("*");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

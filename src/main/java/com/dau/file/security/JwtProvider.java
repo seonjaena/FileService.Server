@@ -4,10 +4,7 @@ import com.dau.file.dto.JwtDto;
 import com.dau.file.exception.exception.UnAuthenticatedException;
 import com.dau.file.exception.exception.UnAuthorizedException;
 import com.dau.file.service.UserService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,9 +36,6 @@ public class JwtProvider {
     @Value("${jwt.expire.access}")
     private Long accessTokenExpireMilliSec;
 
-    @Value("${jwt.expire.refresh}")
-    private Long refreshTokenExpireMilliSec;
-
     public JwtProvider(@Value("${jwt.secret}") String secretKey, UserService userService, MessageSource messageSource) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
@@ -53,7 +47,7 @@ public class JwtProvider {
     }
 
     /**
-     * AccessTokenとRefreshTokenを作る
+     * AccessTokenを作る
      * @param userId
      * @param roles
      * @return
@@ -62,19 +56,8 @@ public class JwtProvider {
         Date now = new Date();
 
         String accessToken = createAccessToken(userId, roles, now);
-        String refreshToken = createRefreshToken(userId, roles, now);
 
         return new JwtDto(accessToken);
-    }
-
-    /**
-     * AccessTokenを作る
-     * @param userId
-     * @param roles
-     * @return
-     */
-    public String refreshAccessToken(String userId, List<String> roles) {
-        return createAccessToken(userId, roles, new Date());
     }
 
     /**
@@ -126,8 +109,13 @@ public class JwtProvider {
      * @return
      */
     public boolean isTokenExpired(String token) {
-        Claims claims = parseClaims(token);
-        return claims.getExpiration().before(new Date());
+        try {
+            Claims claims = parseClaims(token);
+            return claims.getExpiration().before(new Date());
+        }catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -161,28 +149,21 @@ public class JwtProvider {
                 .compact();
     }
 
-    private String createRefreshToken(String userId, List<String> roles, Date now) {
-        return Jwts.builder()
-                .setHeader(header)
-                .subject(userId)
-                .claim(ROLES, roles)
-                .issuedAt(now)
-                .expiration(new Date(now.getTime() + refreshTokenExpireMilliSec))
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-    }
-
     public Claims parseClaims(String token) {
         if(!StringUtils.hasText(token)) {
             throw new UnAuthenticatedException(
                     messageSource.getMessage("notice.re-login.request", null, LocaleContextHolder.getLocale())
             );
         }
-        return Jwts.parser()
-                .verifyWith((SecretKey) key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith((SecretKey) key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        }catch(ExpiredJwtException e) {
+            return e.getClaims();
+        }
     }
 
 }

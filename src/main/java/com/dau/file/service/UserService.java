@@ -3,7 +3,6 @@ package com.dau.file.service;
 import com.dau.file.entity.User;
 import com.dau.file.exception.exception.UserIdNotFoundException;
 import com.dau.file.repository.UserRepository;
-import com.dau.file.security.AuthUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -40,7 +39,7 @@ public class UserService implements UserDetailsService {
         Collection<SimpleGrantedAuthority> roles = new ArrayList<>();
         roles.add(new SimpleGrantedAuthority(user.getRole()));
 
-        return new AuthUser(user.getUserId(), user.getUserPw(), roles, user);
+        return new User(user.getUserId(), user.getUserPw());
     }
 
     public User getUser(String userId) {

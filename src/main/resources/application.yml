@@ -31,6 +31,8 @@ spring:
   logging:
     config: classpath:logback-spring.xml
 
+  cloud:
+
 # JWTの設定
 jwt:
   # JWTの秘密キーを環境変数で注入される
@@ -38,11 +40,15 @@ jwt:
   expire:
     # 5分 (1000 * 60 * 5 = 300000) / 30分 (1000 * 60 * 30 = 1800000) / 1時間 (1000 * 60 * 60 = 3600000)
     access: 1800000
-    # 1日 (1000 * 60 * 24 = 1440000) / 1月 (1000 * 60 * 24 * 31 = 44640000)
-    refresh: 1440000
 
 server:
   forward-headers-strategy: native # HttpServletRequest.getRemoteAddr()を使ってX-Forwarded-For Header情報をもらうために使う
+  servlet:
+    context-path: /dau/api
 
 service:
   allowed-ips: ${ALLOWED_IPS:192.168.192.192, 127.0.0.1, 0:0:0:0:0:0:0:1} # 要請ができるIPを環境変数で注入される ex: 197.0.10. , 197.0.10.24
+  rate-limit:
+    init-bucket-size: 10
+    refill-second: 60
+    refill-token: 3
