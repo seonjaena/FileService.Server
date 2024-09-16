@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -101,7 +100,8 @@ public class FileDataService {
 
     public RESULT deleteFileData(LocalDateTime standardTime) {
         FileData fileData = getFileData(standardTime);
-        fileDataRepository.delete(fileData);
+        fileData.delete();
+        fileDataRepository.flush();
         return isFileDataExists(standardTime)? RESULT.FAIL : RESULT.SUCCESS;
     }
 

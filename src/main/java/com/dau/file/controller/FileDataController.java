@@ -5,9 +5,9 @@ import com.dau.file.dto.request.ModifyFileDataRequestDto;
 import com.dau.file.dto.request.ModifySumRequestDto;
 import com.dau.file.dto.request.ModifyUserCntChangeRequestDto;
 import com.dau.file.service.FileDataService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 
 @RestController
@@ -48,32 +48,32 @@ public class FileDataController {
     }
 
     @PatchMapping(value = "/join-cnt")
-    public CommonResponseDto modifyJoinCnt(@RequestBody ModifyUserCntChangeRequestDto modifyUserCntChangeRequestDto) {
+    public CommonResponseDto modifyJoinCnt(@Valid @RequestBody ModifyUserCntChangeRequestDto modifyUserCntChangeRequestDto) {
         return new CommonResponseDto(fileDataService.modifyJoinCnt(modifyUserCntChangeRequestDto));
     }
 
     @PatchMapping(value = "/quit-cnt")
-    public CommonResponseDto modifyQuitCnt(@RequestBody ModifyUserCntChangeRequestDto modifyUserCntChangeRequestDto) {
+    public CommonResponseDto modifyQuitCnt(@Valid @RequestBody ModifyUserCntChangeRequestDto modifyUserCntChangeRequestDto) {
         return new CommonResponseDto(fileDataService.modifyQuitCnt(modifyUserCntChangeRequestDto));
     }
 
     @PatchMapping(value = "/payment-sum")
-    public CommonResponseDto modifyPaymentSum(@RequestBody ModifySumRequestDto modifySumRequestDto) {
+    public CommonResponseDto modifyPaymentSum(@Valid @RequestBody ModifySumRequestDto modifySumRequestDto) {
         return new CommonResponseDto(fileDataService.modifyPaymentSum(modifySumRequestDto));
     }
 
     @PatchMapping(value = "/use-sum")
-    public CommonResponseDto modifyUseSum(@RequestBody ModifySumRequestDto modifySumRequestDto) {
+    public CommonResponseDto modifyUseSum(@Valid @RequestBody ModifySumRequestDto modifySumRequestDto) {
         return new CommonResponseDto(fileDataService.modifyUseSum(modifySumRequestDto));
     }
 
     @PatchMapping(value = "/sales-sum")
-    public CommonResponseDto modifySalesSum(@RequestBody ModifySumRequestDto modifySumRequestDto) {
+    public CommonResponseDto modifySalesSum(@Valid @RequestBody ModifySumRequestDto modifySumRequestDto) {
         return new CommonResponseDto(fileDataService.modifySalesSum(modifySumRequestDto));
     }
 
     @PutMapping
-    public CommonResponseDto modifyFileData(@RequestBody ModifyFileDataRequestDto modifyFileDataRequestDto) {
+    public CommonResponseDto modifyFileData(@Valid @RequestBody ModifyFileDataRequestDto modifyFileDataRequestDto) {
         return new CommonResponseDto(fileDataService.modifyFileData(modifyFileDataRequestDto));
     }
 

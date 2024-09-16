@@ -45,6 +45,15 @@ public class FileData {
     @Convert(converter = STATUS.Converter.class)
     private STATUS status;
 
+    public FileData(LocalDateTime standardTime, Integer joinCnt, Integer quitCnt, BigDecimal paymentSum, BigDecimal useSum, BigDecimal salesSum) {
+        this.standardTime = standardTime;
+        this.joinCnt = joinCnt;
+        this.quitCnt = quitCnt;
+        this.paymentSum = paymentSum;
+        this.useSum = useSum;
+        this.salesSum = salesSum;
+    }
+
     public void modifyJoinCnt(Integer joinCnt) {
         this.joinCnt = joinCnt;
     }
@@ -63,6 +72,10 @@ public class FileData {
 
     public void modifySalesSum(BigDecimal salesSum) {
         this.salesSum = salesSum;
+    }
+
+    public void delete() {
+        this.status = STATUS.DELETED;
     }
 
 }

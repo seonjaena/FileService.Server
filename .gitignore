@@ -43,3 +43,6 @@ gradle
 *.env
 
 logs
+
+files_bak
+files

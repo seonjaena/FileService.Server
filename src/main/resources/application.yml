@@ -31,15 +31,13 @@ spring:
   logging:
     config: classpath:logback-spring.xml
 
-  cloud:
-
 # JWTの設定
 jwt:
   # JWTの秘密キーを環境変数で注入される
   secret: ${JWT_SECRET_KEY:zrGwAiwkl9jUN4aIxXa8KluPljl9eX0qKfpTgYT1OKIlZLOIf5L0jPSN9pjc0sJ1d5r1xGJCuLJu6u8K2BlSKTNhY7liEgbGCJnz10y3Z3IItlsO0pJjIhPTgMvQ95Iki2oVx4fbBMY6fBD33WungyCmcOYsBdk1IAABl1qn6E6LgmEJoOv8Z83SRb3PmlCO}
   expire:
     # 5分 (1000 * 60 * 5 = 300000) / 30分 (1000 * 60 * 30 = 1800000) / 1時間 (1000 * 60 * 60 = 3600000)
-    access: 1800000
+    access: ${JWT_EXPIRE_TIME:1800000}
 
 server:
   forward-headers-strategy: native # HttpServletRequest.getRemoteAddr()を使ってX-Forwarded-For Header情報をもらうために使う
@@ -49,6 +47,10 @@ server:
 service:
   allowed-ips: ${ALLOWED_IPS:192.168.192.192, 127.0.0.1, 0:0:0:0:0:0:0:1} # 要請ができるIPを環境変数で注入される ex: 197.0.10. , 197.0.10.24
   rate-limit:
-    init-bucket-size: 10
-    refill-second: 60
-    refill-token: 3
+    init-bucket-size: ${RATE_LIMIT_BUCKET_SIZE:1000}
+    refill-second: ${RATE_LIMIT_REFILL_SECOND:60}
+    refill-token: ${RATE_LIMIT_REFILL_TOKEN:1000}
+  file-write-scheduler:
+    cron: 0 * * * * *
+    file-directory: ${WRITE_FILE_DIRECTORY:/home/sky114z/private-study/file/files}
+    extension-delimiter: ${WRITE_FILE_EXTENSION_DELIMITER:csv, txt|}
