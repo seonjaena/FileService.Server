@@ -112,7 +112,7 @@ public class FileWriteScheduler {
         BigDecimal salesSum = new BigDecimal(parts[5].replace(",", "").toString());
 
         FileData data = new FileData(standardTime, joinCnt, quitCnt, paymentSum, useSum, salesSum);
-        fileDataRepository.saveAndFlush(data);
+        fileDataRepository.save(data);
     }
 
     private void deleteFile(Path filePath) {
