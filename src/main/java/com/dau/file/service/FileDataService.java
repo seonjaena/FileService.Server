@@ -110,7 +110,7 @@ public class FileDataService {
                 .orElseThrow(() -> new FileDataNotExistsException(messageSource.getMessage("error.file-data.not-exists", null, LocaleContextHolder.getLocale())));
     }
 
-    private boolean isFileDataExists(LocalDateTime standardTime) {
+    public boolean isFileDataExists(LocalDateTime standardTime) {
         return fileDataRepository.findByStandardTimeAndStatus(standardTime, STATUS.NORMAL).isPresent();
     }
 

@@ -1,9 +1,10 @@
 package com.dau.file.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
+@AllArgsConstructor
 public class LoginRequestDto {
 
     private String userId;

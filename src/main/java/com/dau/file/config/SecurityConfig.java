@@ -1,10 +1,9 @@
 package com.dau.file.config;
 
-import com.dau.file.security.IpCheckFilter;
-import com.dau.file.security.JwtAuthenticationFilter;
+import com.dau.file.jwt.JwtAuthenticationFilter;
 import com.dau.file.exception.JwtAccessDeniedHandler;
 import com.dau.file.exception.JwtAuthenticationEntryPoint;
-import com.dau.file.security.JwtProvider;
+import com.dau.file.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,8 +25,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
-
-    private final IpConfig ipConfig;
 
     private final static String H2_CONSOLE_URL = "/h2-console/**";
 
@@ -86,8 +82,6 @@ public class SecurityConfig {
                 )
         ;
 
-        // ユーザのIPを確認するFilterを追加する
-        http.addFilterBefore(new IpCheckFilter(ipConfig.getAllowedIps()), BasicAuthenticationFilter.class);
         // JWTを認証するFilterを追加する
         http.addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 

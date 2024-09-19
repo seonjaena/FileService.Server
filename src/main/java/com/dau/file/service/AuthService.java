@@ -5,7 +5,7 @@ import com.dau.file.dto.request.LoginRequestDto;
 import com.dau.file.dto.response.LoginResponseDto;
 import com.dau.file.entity.User;
 import com.dau.file.exception.exception.UnAuthenticatedException;
-import com.dau.file.security.JwtProvider;
+import com.dau.file.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;

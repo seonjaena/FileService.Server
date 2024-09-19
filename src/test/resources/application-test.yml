@@ -1,0 +1,10 @@
+service:
+  allowed-ips: ${ALLOWED_IPS:192.168.192.192, 127.0.0.1, 0:0:0:0:0:0:0:1} # 要請ができるIPを環境変数で注入される ex: 197.0.10. , 197.0.10.24
+  rate-limit:
+    init-bucket-size: ${RATE_LIMIT_BUCKET_SIZE:1000}
+    refill-second: ${RATE_LIMIT_REFILL_SECOND:60}
+    refill-token: ${RATE_LIMIT_REFILL_TOKEN:1000}
+  file-write-scheduler:
+    cron: 0 0 * * * *
+    file-directory: ${WRITE_FILE_DIRECTORY:/home/sky114z/private-study/file/files}
+    extension-delimiter: ${WRITE_FILE_EXTENSION_DELIMITER:csv, txt|}

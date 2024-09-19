@@ -2,14 +2,13 @@ package com.dau.file.dto.request;
 
 import com.dau.file.validator.constraint.SumConstraint;
 import com.dau.file.validator.constraint.UserCntConstraint;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ModifyFileDataRequestDto {
 
     private LocalDateTime standardTime;

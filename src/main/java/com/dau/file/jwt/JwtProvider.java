@@ -1,4 +1,4 @@
-package com.dau.file.security;
+package com.dau.file.jwt;
 
 import com.dau.file.dto.JwtDto;
 import com.dau.file.exception.exception.UnAuthenticatedException;
