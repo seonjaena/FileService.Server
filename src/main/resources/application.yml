@@ -47,12 +47,11 @@ service:
   init-user:
     id: test-user
     pw: test-password
-  allowed-ips: ${ALLOWED_IPS:192.168.192.192, 127.0.0.1, 172.17.0.0/16} # 접근을 허용하는 IP를 지정한다. ex: 197.0.10.211, 197.0.10.24
+  allowed-ips: ${ALLOWED_IPS:127.0.0.1, 172.17.0.0/16} # 접근을 허용하는 IP를 지정한다. ex: 197.0.10.211, 197.0.10.24
   rate-limit:
     init-bucket-size: ${RATE_LIMIT_BUCKET_SIZE:20} # Token을 담는 Bucket의 크기 (초기 Token의 개수)
     refill-second: ${RATE_LIMIT_REFILL_SECOND:60} # Token을 다시 채우는데 걸리는 시간 (Greedy 정책 사용)
     refill-token: ${RATE_LIMIT_REFILL_TOKEN:10} # Token이 채워지는 개수
   file-write-scheduler:
-    cron: 0 * * * * *
-#    cron: 0 0 0 * * * # 파일을 읽어서 DB에 쓰는 스케쥴러의 실행 crontab
+    cron: 0 0 0 * * * # 파일을 읽어서 DB에 쓰는 스케쥴러의 실행 crontab
     file-directory: ${WRITE_FILE_DIRECTORY:/home/sky114z/private-study/file/files} # 파일의 경로

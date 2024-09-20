@@ -4,12 +4,8 @@ spring:
       on-profile: test
 
 service:
-  allowed-ips: ${ALLOWED_IPS:192.168.192.192, 127.0.0.1, 0:0:0:0:0:0:0:1}
+  allowed-ips: ${ALLOWED_IPS:127.0.0.1}
   rate-limit:
     init-bucket-size: 60
-    refill-second: 600
-    refill-token: 1
-  file-write-scheduler:
-    cron: 0 0 * * * *
-    file-directory: ${WRITE_FILE_DIRECTORY:/home/sky114z/private-study/file/files}
-    extension-delimiter: ${WRITE_FILE_EXTENSION_DELIMITER:csv, txt|}
+    refill-second: 60
+    refill-token: 60
