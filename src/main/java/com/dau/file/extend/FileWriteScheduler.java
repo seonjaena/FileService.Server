@@ -1,9 +1,7 @@
 package com.dau.file.extend;
 
-import com.dau.file.entity.FileData;
-import com.dau.file.repository.FileDataRepository;
-import io.micrometer.common.util.StringUtils;
-import jakarta.annotation.PostConstruct;
+import com.dau.file.scheduler.FileWriter;
+import com.dau.file.scheduler.FileWriterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,17 +11,12 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -31,46 +24,15 @@ import java.util.Optional;
 public class FileWriteScheduler {
 
     private final PlatformTransactionManager transactionManager;
-    private final FileDataRepository fileDataRepository;
+    private final FileWriterFactory fileWriterFactory;
 
     @Value("${service.file-write-scheduler.file-directory}")
     private String schedulerFileDirectory;
 
-    @Value("${service.file-write-scheduler.extension-delimiter}")
-    private String extensionDelimiterStr;
-
-    private Map<String, String> fileDelimiters = new HashMap<>();
-
-    @PostConstruct
-    public void init() {
-        String[] extensionDelimiters = extensionDelimiterStr.split(" ");
-        for(String extensionDelimiter : extensionDelimiters) {
-            extensionDelimiter = extensionDelimiter.trim();
-
-            if(extensionDelimiter == null || extensionDelimiter.length() < 2) {
-                continue;
-            }
-
-            String extension = extensionDelimiter.substring(0, extensionDelimiter.length() - 1);
-            String delimiter = extensionDelimiter.substring(extensionDelimiter.length() - 1);
-
-            if(StringUtils.isEmpty(extension) || StringUtils.isEmpty(delimiter)) {
-                continue;
-            }
-
-            if(delimiter.equals("|")) {
-                delimiter = delimiter.replace("|", "\\|");
-            }
-
-            this.fileDelimiters.put(extension, delimiter);
-        }
-    }
-
     @Scheduled(cron = "${service.file-write-scheduler.cron}")
     public void processFiles() {
-        try {
-            Files.walk(Paths.get(schedulerFileDirectory))
-                    .filter(Files::isRegularFile)
+        try(Stream<Path> paths = Files.walk(Paths.get(schedulerFileDirectory))) {
+            paths.filter(Files::isRegularFile)
                     .forEach(this::processFile);
         }catch(IOException e) {
             log.error(e.getMessage(), e);
@@ -81,22 +43,14 @@ public class FileWriteScheduler {
         TransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
         TransactionStatus transactionStatus = transactionManager.getTransaction(transactionDefinition);
 
-        Optional<String> fileExtensionOpt = getFileExtension(filePath.toString());
-        if(fileExtensionOpt.isEmpty()) {
-            return;
-        }
-
-        String fileExtension = fileExtensionOpt.get();
-        String delimiter = fileDelimiters.getOrDefault(fileExtension, "\\|");
-
-        log.info("start writing file. filename = {}", filePath);
-
-        try(BufferedReader reader = Files.newBufferedReader(filePath)) {
-            String line;
-            while((line = reader.readLine()) != null) {
-                String[] parts = line.split(delimiter);
-                saveData(parts);
+        try {
+            String fileName = filePath.getFileName().toString();
+            Optional<FileWriter> writer = fileWriterFactory.getWriter(fileName);
+            if(writer.isEmpty()) {
+                return;
             }
+            log.info("start writing file. filename = {}", filePath);
+            writer.get().writeFile(filePath);
             transactionManager.commit(transactionStatus);
             log.info("writing file is done. filename = {}", filePath);
         }catch(Exception e) {
@@ -109,28 +63,12 @@ public class FileWriteScheduler {
 
     }
 
-    private void saveData(String[] parts) {
-        LocalDateTime standardTime = LocalDateTime.parse(parts[0], DateTimeFormatter.ofPattern("yyyy-MM-dd HH"));
-        int joinCnt = Integer.parseInt(parts[1]);
-        int quitCnt = Integer.parseInt(parts[2]);
-        BigDecimal paymentSum = new BigDecimal(parts[3].replace(",", "").toString());
-        BigDecimal useSum = new BigDecimal(parts[4].replace(",", "").toString());
-        BigDecimal salesSum = new BigDecimal(parts[5].replace(",", "").toString());
-
-        FileData data = new FileData(standardTime, joinCnt, quitCnt, paymentSum, useSum, salesSum);
-        fileDataRepository.save(data);
-    }
-
     private void deleteFile(Path filePath) {
         try {
             Files.delete(filePath);
         }catch(Exception e) {
             log.error("failed to delete file. filename = {}", filePath);
         }
-    }
-
-    private Optional<String> getFileExtension(String filename) {
-        return !StringUtils.isEmpty(filename) && filename.contains(".") ? Optional.of(filename.substring(filename.lastIndexOf(".") + 1)) : Optional.empty();
     }
 
 }

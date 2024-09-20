@@ -13,6 +13,7 @@ FROM eclipse-temurin:21.0.2_13-jre-alpine AS production
 ENV TZ=Asia/Seoul
 
 WORKDIR /usr/local/FileService.Server
+RUN mkdir files
 
 COPY --from=Builder /usr/local/FileService.Server/file.jar ./file.jar
 

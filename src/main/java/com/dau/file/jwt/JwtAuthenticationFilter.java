@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         // 만약 H2 콘솔에 대한 요청이라면 JWT 인증 제외
-        return request.getRequestURI().startsWith(h2ConsolePath);
+        return request.getServletPath().startsWith(h2ConsolePath);
     }
 
     @Override

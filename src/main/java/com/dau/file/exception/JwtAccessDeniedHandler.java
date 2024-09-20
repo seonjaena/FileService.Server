@@ -28,7 +28,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         // 시스템에서 발생한 에러가 아니기 때문에 warning 레벨로 로그 출력
-        log.warn("Not Authorized user requested. ip={}, uri={}, userId={}", request.getRemoteAddr(), request.getServletPath(), request.getUserPrincipal().getName());
+        log.warn("Not Authorized user requested. ip={}, uri={}, userId={}", request.getRemoteAddr(), request.getRequestURI(), request.getUserPrincipal().getName());
         handlerExceptionResolver.resolveException(request, response, null, new UnAuthorizedException(messageSource.getMessage("error.common.403", null, LocaleContextHolder.getLocale())));
     }
 }

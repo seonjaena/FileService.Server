@@ -50,7 +50,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // 만약 H2 콘솔에 대한 요청이라면 Rate Limit 제외
-        return request.getRequestURI().startsWith(h2ConsolePath);
+        return request.getServletPath().startsWith(h2ConsolePath);
     }
 
     @Override

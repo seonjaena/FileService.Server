@@ -28,7 +28,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         // 시스템에서 발생한 에러가 아니기 때문에 warning 레벨로 로그 출력
-        log.warn("Not Authenticated user requested. ip={}, uri={}", request.getRemoteAddr(), request.getServletPath());
+        log.warn("Not Authenticated user requested. ip={}, uri={}", request.getRemoteAddr(), request.getRequestURI());
         handlerExceptionResolver.resolveException(request, response, null, new UnAuthenticatedException(messageSource.getMessage("error.common.401", null, LocaleContextHolder.getLocale())));
     }
 

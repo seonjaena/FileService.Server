@@ -51,6 +51,7 @@ public class FileData {
         this.paymentSum = paymentSum;
         this.useSum = useSum;
         this.salesSum = salesSum;
+        this.status = STATUS.NORMAL;
     }
 
     public void modifyJoinCnt(Integer joinCnt) {
