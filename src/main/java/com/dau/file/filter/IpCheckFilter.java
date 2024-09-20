@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 
 @Slf4j
@@ -33,8 +34,10 @@ public class IpCheckFilter extends OncePerRequestFilter {
         String clientIp = request.getRemoteAddr();
 
         if(allowedIps == null || !allowedIps.contains(clientIp)) {
-            // システムの問題じゃないからwarningログでする
-            log.warn("Not Allowed IP requested. ip={}, uri={}", request.getRemoteAddr(), request.getRequestURI());
+            Principal principal = request.getUserPrincipal();
+            String userId = principal == null ? null : principal.getName();
+            // 시스템에서 발생한 에러가 아니기 때문에 warning 레벨로 로그 출력
+            log.warn("Not Allowed IP requested. ip={}, uri={}, userId={}", request.getRemoteAddr(), request.getServletPath(), userId);
             handlerExceptionResolver.resolveException(request, response, null, new UnAuthorizedException(messageSource.getMessage("error.common.403", null, LocaleContextHolder.getLocale())));
             return;
         }

@@ -18,10 +18,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = FileDataController.class, properties = "spring.config.location=classpath:/application-test.yml")
+@ActiveProfiles(value = {"test"})
 public class FileDataControllerTest {
 
     @Autowired
@@ -262,7 +265,7 @@ public class FileDataControllerTest {
     }
 
     @Test
-    @DisplayName(value = "파일 데이터 변경")
+    @DisplayName(value = "파일 데이터 변경 - 에러 X")
     @WithMockUser
     void modifyFileData() throws Exception {
         ModifyFileDataRequestDto requestDto = new ModifyFileDataRequestDto(fileTime, updatedJoinCnt, updatedQuitCnt, updatedPaymentSum, updatedUseSum, updatedSalesSum);
@@ -283,6 +286,32 @@ public class FileDataControllerTest {
                 .andExpect(jsonPath("$.data.paymentSum").value(updatedPaymentSum))
                 .andExpect(jsonPath("$.data.useSum").value(updatedUseSum))
                 .andExpect(jsonPath("$.data.salesSum").value(updatedSalesSum));
+    }
+
+    @Test
+    @DisplayName(value = "파일 데이터 변경 - 에러 O")
+    @WithMockUser
+    void modifyFileDataException() throws Exception {
+        List<ModifyFileDataRequestDto> requestDtoList = List.of(
+                new ModifyFileDataRequestDto(fileTime, -1, quitCnt, paymentSum, useSum, salesSum),
+                new ModifyFileDataRequestDto(fileTime, Integer.MAX_VALUE + 1, quitCnt, paymentSum, useSum, salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, -1, paymentSum, useSum, salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, Integer.MAX_VALUE + 1, paymentSum, useSum, salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, quitCnt, new BigDecimal(-1), useSum, salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, quitCnt, new BigDecimal(Integer.MAX_VALUE + 1), useSum, salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, quitCnt, paymentSum, new BigDecimal(-1), salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, quitCnt, paymentSum, new BigDecimal(Integer.MAX_VALUE + 1), salesSum),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, quitCnt, paymentSum, useSum, new BigDecimal(-1)),
+                new ModifyFileDataRequestDto(fileTime, joinCnt, quitCnt, paymentSum, useSum, new BigDecimal(Integer.MAX_VALUE + 1))
+        );
+
+        for(ModifyFileDataRequestDto requestDto : requestDtoList) {
+            mockMvc.perform(put("/file-data")
+                            .with(csrf())
+                            .content(objectMapper.writeValueAsString(requestDto))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     @Test

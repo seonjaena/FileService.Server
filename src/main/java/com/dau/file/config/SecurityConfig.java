@@ -5,6 +5,7 @@ import com.dau.file.exception.JwtAccessDeniedHandler;
 import com.dau.file.exception.JwtAuthenticationEntryPoint;
 import com.dau.file.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -26,7 +27,8 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
 
-    private final static String H2_CONSOLE_URL = "/h2-console/**";
+    @Value("${spring.h2.console.path:/h2-console}")
+    private String h2ConsolePath;
 
     private static final Map<HttpMethod, String[]> PERMIT_ALL_METHOD_URL = Map.ofEntries(
             Map.entry(HttpMethod.GET, new String[]{}),
@@ -42,20 +44,21 @@ public class SecurityConfig {
                 .cors((cors) ->
                         cors.configurationSource(corsConfigurationSource())
                 )
-                // Sessionを使わないからcsrf tokenは必要じゃない
+                // Session을 사용하지 않기 때문에 CSRF 토큰은 필요 없음
                 .csrf((csrf) ->
                         csrf.disable()
                 )
+                // H2 Console이 iframe 방식으로 화면 구성을 하는 것으로 보임. 따라서 iframe 보안 옵션을 disable (REST API 서버이기 때문에 disable 처리해도 무관)
                 .headers((header) -> {
                     header.frameOptions(option -> {
                         option.disable();
                     });
                 })
-                // JWTを使うからSessionはSTATELESSでする
+                // JWT를 사용하기 때문에 Session을 생성 및 사용하지 않는다.
                 .sessionManagement((sessionManagement) ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // どんなRequestでも認証が必要だ
+                // 기본: 모든 URL 요청은 ROLE을 가져야만 접근 가능하다.
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
                                 .requestMatchers(HttpMethod.GET, PERMIT_ALL_METHOD_URL.get(HttpMethod.GET)).permitAll()
@@ -63,18 +66,19 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.PUT, PERMIT_ALL_METHOD_URL.get(HttpMethod.PUT)).permitAll()
                                 .requestMatchers(HttpMethod.PATCH, PERMIT_ALL_METHOD_URL.get(HttpMethod.PATCH)).permitAll()
                                 .requestMatchers(HttpMethod.DELETE, PERMIT_ALL_METHOD_URL.get(HttpMethod.DELETE)).permitAll()
-                                .requestMatchers(H2_CONSOLE_URL).permitAll()
+                                .requestMatchers(h2ConsolePath + "/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
                 )
-                // JWTを使うからFormLoginは使わない
+                // REST API 형식의 서버이며 인증 정보를 JSON 형태로 받기 때문에 form login은 필요하지 않다.
                 .formLogin((formLogin) ->
                         formLogin.disable()
                 )
-                // 基本的に提供されるLogin Formは使わない
+                // JWT를 사용하기 때문에 Http Basic 인증 방식은 사용하지 않는다.
                 .httpBasic((httpBasic) ->
                         httpBasic.disable()
                 )
+                // Http 상태코드 401, 403에 대해서 처리하는 코드 등록
                 .exceptionHandling((exceptionHandler) ->
                         exceptionHandler
                                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
@@ -82,12 +86,13 @@ public class SecurityConfig {
                 )
         ;
 
-        // JWTを認証するFilterを追加する
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+        // 요청 Header에서 JWT를 확인하는 필터 등록
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtProvider, h2ConsolePath), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // IP Check 필터가 존재하기 때문에 CORS 정책은 모두 허용하는 방향으로 개발한다.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -95,13 +100,14 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("*");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(false);   // CORS 정책이 '*' 이고 쿠키가 필요하지 않기 때문에 false로 설정한다.
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
+    // 로그인을 위해 해시화를 지원해야 한다.
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();

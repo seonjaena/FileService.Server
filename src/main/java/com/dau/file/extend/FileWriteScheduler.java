@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -45,6 +46,10 @@ public class FileWriteScheduler {
         String[] extensionDelimiters = extensionDelimiterStr.split(" ");
         for(String extensionDelimiter : extensionDelimiters) {
             extensionDelimiter = extensionDelimiter.trim();
+
+            if(extensionDelimiter == null || extensionDelimiter.length() < 2) {
+                continue;
+            }
 
             String extension = extensionDelimiter.substring(0, extensionDelimiter.length() - 1);
             String delimiter = extensionDelimiter.substring(extensionDelimiter.length() - 1);
@@ -76,12 +81,13 @@ public class FileWriteScheduler {
         TransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
         TransactionStatus transactionStatus = transactionManager.getTransaction(transactionDefinition);
 
-        String fileExtension = getFileExtension(filePath.toString());
-        if(fileExtension == null) {
+        Optional<String> fileExtensionOpt = getFileExtension(filePath.toString());
+        if(fileExtensionOpt.isEmpty()) {
             return;
         }
 
-        String delimiter = fileDelimiters.get(fileExtension);
+        String fileExtension = fileExtensionOpt.get();
+        String delimiter = fileDelimiters.getOrDefault(fileExtension, "\\|");
 
         log.info("start writing file. filename = {}", filePath);
 
@@ -91,11 +97,11 @@ public class FileWriteScheduler {
                 String[] parts = line.split(delimiter);
                 saveData(parts);
             }
-            log.info("writing file is done. filename = {}", filePath);
             transactionManager.commit(transactionStatus);
+            log.info("writing file is done. filename = {}", filePath);
         }catch(Exception e) {
-            log.error("failed to write file. filename={}, origin error={}", filePath, e.getMessage());
             transactionManager.rollback(transactionStatus);
+            log.error("failed to write file. filename={}, origin error={}", filePath, e.getMessage());
             return;
         }
 
@@ -123,8 +129,8 @@ public class FileWriteScheduler {
         }
     }
 
-    private String getFileExtension(String filename) {
-        return !StringUtils.isEmpty(filename) && filename.contains(".") ? filename.substring(filename.lastIndexOf(".") + 1) : null;
+    private Optional<String> getFileExtension(String filename) {
+        return !StringUtils.isEmpty(filename) && filename.contains(".") ? Optional.of(filename.substring(filename.lastIndexOf(".") + 1)) : Optional.empty();
     }
 
 }

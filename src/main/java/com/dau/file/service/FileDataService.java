@@ -106,7 +106,7 @@ public class FileDataService {
     }
 
     public FileData getFileData(LocalDateTime standardTime) {
-        return fileDataRepository.findByStandardTimeAndStatus(standardTime, STATUS.NORMAL)
+        return fileDataRepository.findByStandardTimeAndStatus(standardTime.withMinute(0).withSecond(0).withNano(0), STATUS.NORMAL)
                 .orElseThrow(() -> new FileDataNotExistsException(messageSource.getMessage("error.file-data.not-exists", null, LocaleContextHolder.getLocale())));
     }
 

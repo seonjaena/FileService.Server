@@ -32,6 +32,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Value("${service.rate-limit.refill-second}")
     private long refillSecond;
 
+    @Value("${spring.h2.console.path:/h2-console}")
+    private String h2ConsolePath;
+
     public RateLimitFilter(MessageSource messageSource, HandlerExceptionResolver handlerExceptionResolver) {
         this.messageSource = messageSource;
         this.handlerExceptionResolver = handlerExceptionResolver;
@@ -42,6 +45,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.bucket = Bucket.builder()
                 .addLimit(limit -> limit.capacity(initBucketSize).refillGreedy(refillToken, Duration.ofSeconds(refillSecond)))
                 .build();
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // 만약 H2 콘솔에 대한 요청이라면 Rate Limit 제외
+        return request.getRequestURI().startsWith(h2ConsolePath);
     }
 
     @Override

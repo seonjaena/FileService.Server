@@ -25,6 +25,7 @@ public class AuthService {
     private final MessageSource messageSource;
     private final JwtProvider jwtProvider;
 
+    // 로그인을 하는 서비스 로직 (access token을 생성하고 사용자에게 리턴한다.)
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
         User dbUser = userService.getUser(loginRequestDto.getUserId());
 

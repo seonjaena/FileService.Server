@@ -14,6 +14,7 @@ public class FilterConfig {
     private final RateLimitFilter rateLimitFilter;
     private final IpCheckFilter ipCheckFilter;
 
+    // Rate Limit 필터 등록
     @Bean
     public FilterRegistrationBean<RateLimitFilter> globalRateLimitFilter() {
         FilterRegistrationBean<RateLimitFilter> registrationBean = new FilterRegistrationBean<>();
@@ -23,6 +24,7 @@ public class FilterConfig {
         return registrationBean;
     }
 
+    // IP 체크 필터 등록
     @Bean
     public FilterRegistrationBean<IpCheckFilter> globalIpCheckFilter() {
         FilterRegistrationBean<IpCheckFilter> registrationBean = new FilterRegistrationBean<>();

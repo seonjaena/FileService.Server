@@ -47,7 +47,7 @@ public class JwtProvider {
     }
 
     /**
-     * AccessTokenを作る
+     * JWT 생성
      * @param userId
      * @param roles
      * @return
@@ -61,7 +61,7 @@ public class JwtProvider {
     }
 
     /**
-     * JWTを使ってユーザを検証する (Authentication, Authorization)
+     * JWT에서 사용자 정보 파싱 (Authentication, Authorization)
      * @param token
      * @return
      */
@@ -69,14 +69,14 @@ public class JwtProvider {
         Claims claims = parseClaims(token);
         String userId = claims.getSubject();
 
-        // tokenにuserIdがあるかを確認する
+        // 사용자 계정
         if(!StringUtils.hasText(userId)) {
             throw new UnAuthenticatedException(
                     messageSource.getMessage("notice.re-login.request", null, LocaleContextHolder.getLocale())
             );
         }
 
-        // tokenにユーザ権限があるかを確認
+        // 사용자 권한 검사
         if(claims.get(ROLES) == null) {
             throw new UnAuthorizedException(
                     messageSource.getMessage("notice.re-login.request", null, LocaleContextHolder.getLocale())
@@ -90,7 +90,7 @@ public class JwtProvider {
     }
 
     /**
-     * 要請のHeaderでJWTを得る
+     * 요청 헤더에서 JWT를 얻는다.
      * @param request
      * @return
      */
@@ -98,13 +98,13 @@ public class JwtProvider {
         String authorization = request.getHeader(AUTHORIZATION_HEADER);
 
         if(StringUtils.hasText(authorization) && authorization.startsWith(BEARER_PREFIX)) {
-            return Optional.of(authorization.substring(7));
+            return Optional.of(authorization.substring(BEARER_PREFIX.length() + 1));
         }
         return Optional.ofNullable(null);
     }
 
     /**
-     * ユーザのJWTがまだ使えるかを確認する
+     * JWT의 만료 여부를 검사한다.
      * @param token
      * @return
      */
@@ -119,25 +119,12 @@ public class JwtProvider {
     }
 
     /**
-     * JWTでuserIdを得る
-     * @param token
+     * Access Token 생성 (TODO: 추후 필요하다면 refresh token을 생성하는 함수도 필요함)
+     * @param userId
+     * @param roles
+     * @param now
      * @return
      */
-    public String getUserId(String token) {
-        Claims claims = parseClaims(token);
-        return claims.getSubject();
-    }
-
-    /**
-     * JWTで権限を得る
-     * @param token
-     * @return
-     */
-    public List<String> getUserRoles(String token) {
-        Claims claims = parseClaims(token);
-        return claims.get(ROLES, List.class);
-    }
-
     private String createAccessToken(String userId, List<String> roles, Date now) {
         return Jwts.builder()
                 .setHeader(header)

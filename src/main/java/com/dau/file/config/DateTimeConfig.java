@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 @Configuration
 public class DateTimeConfig implements WebMvcConfigurer {
 
+    // 요청받을 때 파라미터로 받는 날짜 값을 파싱
     @Override
     public void addFormatters(FormatterRegistry registry) {
         DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
@@ -21,6 +22,7 @@ public class DateTimeConfig implements WebMvcConfigurer {
         registrar.registerFormatters(registry);
     }
 
+    // JSON -> Java, Java -> JSON 과정에서 날짜 값을 직렬화/역직렬화
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
         return builder -> {

@@ -16,6 +16,7 @@ public class LoggingAspect {
 
     SimpleDateFormat loggingTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSSSSS");
 
+    // 로깅할 때 추가적인 정보를 함께 출력하도록 한다.
     @Around("execution(* com.dau.file.controller.*.*(..))")
     public Object logTimeMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();

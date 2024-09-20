@@ -18,9 +18,4 @@ public class AuthController {
         return new CommonResponseDto(authService.login(loginRequestDto));
     }
 
-    @GetMapping(value = "/test")
-    public String test() {
-        return "test";
-    }
-
 }

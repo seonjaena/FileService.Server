@@ -15,8 +15,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import java.io.IOException;
 
 /**
- * Spring Security FilterでHttpStatus 401 Unauthorizedが発生したとき下のコード実行
- * Filterで発生したエラーはControllerAdviceで処理できないからこういうふうにする
+ * Spring Security 필터에서 401 Unauthorized가 발생할 경우 아래 코드로 진입
  */
 @Slf4j
 @Component
@@ -28,12 +27,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        // システムの問題じゃないからwarningログでする
-        log.warn("Not Authenticated user requested. ip={}, uri={}", request.getRemoteAddr(), request.getRequestURI());
-        handlerExceptionResolver.resolveException(request, response, null, new UnAuthenticatedException(
-                messageSource.getMessage("error.common.401",
-                        new String[] {request.getRemoteAddr(), request.getRequestURI()},
-                        LocaleContextHolder.getLocale())));
+        // 시스템에서 발생한 에러가 아니기 때문에 warning 레벨로 로그 출력
+        log.warn("Not Authenticated user requested. ip={}, uri={}", request.getRemoteAddr(), request.getServletPath());
+        handlerExceptionResolver.resolveException(request, response, null, new UnAuthenticatedException(messageSource.getMessage("error.common.401", null, LocaleContextHolder.getLocale())));
     }
 
 }
