@@ -1,15 +1,12 @@
 FROM gradle:8.6.0-jdk21-jammy AS builder
 
-ARG version
-
 WORKDIR /usr/local/FileService.Server
 
-COPY *.gradle gradle.* gradlew ./
-COPY gradle ./gradle
-COPY src/main ./src/main
+COPY *.gradle ./
+COPY src ./src
 
-RUN ./gradlew clean build -x test
-RUN mv build/libs/file-$version.jar file.jar
+RUN gradle clean build
+RUN mv build/libs/file-*.jar file.jar
 
 FROM eclipse-temurin:21.0.2_13-jre-alpine AS production
 
